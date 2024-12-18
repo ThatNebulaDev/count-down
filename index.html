@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Clock</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: white;
+            color: black;
+            font-family: Arial, sans-serif;
+            font-size: 2rem;
+        }
+        #countdown {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="countdown">Loading...</div>
+    <audio id="tick-sound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YYAAAAAA" preload="auto"></audio>
+
+    <script>
+        function getNextFriday8AM() {
+            const now = new Date();
+            const day = now.getUTCDay();
+            const daysUntilFriday = (5 - day + 7) % 7 || 7; // Next Friday
+            const nextFriday8AM = new Date(Date.UTC(
+                now.getUTCFullYear(),
+                now.getUTCMonth(),
+                now.getUTCDate() + daysUntilFriday,
+                8, 0, 0
+            ));
+            return nextFriday8AM;
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const target = getNextFriday8AM();
+            const diff = target - now;
+
+            if (diff <= 0) {
+                document.getElementById("countdown").innerText = "It's Friday 8 AM UTC!";
+                clearInterval(timer);
+                return;
+            }
+
+            const seconds = Math.floor(diff / 1000) % 60;
+            const minutes = Math.floor(diff / (1000 * 60)) % 60;
+            const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+            let timeString = "";
+            if (days > 0) timeString += `${days}d `;
+            if (hours > 0 || days > 0) timeString += `${hours}h `;
+            if (minutes > 0 || hours > 0 || days > 0) timeString += `${minutes}m `;
+            timeString += `${seconds}s`;
+
+            document.getElementById("countdown").innerText = timeString;
+
+            // Play tick sound
+            const tickSound = document.getElementById("tick-sound");
+            tickSound.currentTime = 0;
+            tickSound.play();
+        }
+
+        const timer = setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+</body>
+</html>
