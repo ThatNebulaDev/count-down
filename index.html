@@ -18,43 +18,16 @@
             font-family: 'Rajdhani', sans-serif;
             font-size: 25rem;
             font-weight: bold;
-            position: relative;
         }
         #countdown {
             text-align: center;
-        }
-        #sound-toggle {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background-color: black;
-            color: white;
-            border: none;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        #sound-toggle:active {
-            background-color: gray;
         }
     </style>
 </head>
 <body>
     <div id="countdown">Loading...</div>
-    <button id="sound-toggle">Toggle Sound</button>
-    <audio id="tick-sound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YYAAAAAA" preload="auto"></audio>
 
     <script>
-        let soundEnabled = false;
-        const tickSound = document.getElementById("tick-sound");
-        const soundToggle = document.getElementById("sound-toggle");
-
-        soundToggle.addEventListener("click", () => {
-            soundEnabled = !soundEnabled;
-            soundToggle.innerText = soundEnabled ? "Sound On" : "Sound Off";
-        });
-
         function getNextFriday8AM() {
             const now = new Date();
             const day = now.getUTCDay();
@@ -87,11 +60,6 @@
             let timeString = `${days}:${hours}:${minutes}:${seconds}`;
 
             document.getElementById("countdown").innerText = timeString;
-
-            if (soundEnabled) {
-                tickSound.currentTime = 0;
-                tickSound.play();
-            }
         }
 
         const timer = setInterval(updateCountdown, 1000);
