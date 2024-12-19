@@ -16,16 +16,31 @@
             background-color: white;
             color: black;
             font-family: 'Rajdhani', sans-serif;
-        }
-        #countdown {
-            text-align: center;
-            font-size: 10vw; /* Responsive size */
-            font-weight: bold;
+            padding: 1rem;
+            box-sizing: border-box;
         }
 
-        @media (min-width: 1024px) {
-            #countdown {
-                font-size: 250rem; /* Desktop-specific size */
+        #countdown {
+            text-align: center;
+            font-weight: bold;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        #countdown span {
+            display: inline-block;
+            width: 0.9ch; /* Ensures consistent width for digits and colons */
+            text-align: center;
+            font-feature-settings: 'tnum'; /* Ensures tabular spacing for numbers */
+        }
+
+        html {
+            font-size: calc(100vw / 6); /* Adjusted scaling for better appearance */
+        }
+
+        @media (max-width: 600px) {
+            html {
+                font-size: calc(100vw / 7); /* Adjust scaling for smaller devices */
             }
         }
     </style>
@@ -34,26 +49,15 @@
     <div id="countdown">Loading...</div>
 
     <script>
-        function getNextFriday8AM() {
-            const now = new Date();
-            const day = now.getUTCDay();
-            const daysUntilFriday = (5 - day + 7) % 7 || 7; // Next Friday
-            const nextFriday8AM = new Date(Date.UTC(
-                now.getUTCFullYear(),
-                now.getUTCMonth(),
-                now.getUTCDate() + daysUntilFriday,
-                8, 0, 0
-            ));
-            return nextFriday8AM;
-        }
+        // Change the target date and time here
+        const targetDate = new Date(Date.UTC(2024, 11, 20, 8, 0, 0)); // Example: Dec 20, 2024, 8:00 AM UTC
 
         function updateCountdown() {
             const now = new Date();
-            const target = getNextFriday8AM();
-            const diff = target - now;
+            const diff = targetDate - now;
 
             if (diff <= 0) {
-                document.getElementById("countdown").innerText = "It's Friday 8 AM UTC!";
+                document.getElementById("countdown").innerHTML = "Time's up!";
                 clearInterval(timer);
                 return;
             }
@@ -63,9 +67,18 @@
             const hours = String(Math.floor(diff / (1000 * 60 * 60)) % 24).padStart(2, '0');
             const days = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0');
 
-            let timeString = `${days}:${hours}:${minutes}:${seconds}`;
+            const timeString = `${days}:${hours}:${minutes}:${seconds}`;
+            const formattedString = timeString
+                .split("")
+                .map(char => {
+                    if (char === ":") {
+                        return `<span style="width: 0.9ch;">${char}</span>`;
+                    }
+                    return `<span>${char}</span>`;
+                })
+                .join("");
 
-            document.getElementById("countdown").innerText = timeString;
+            document.getElementById("countdown").innerHTML = formattedString;
         }
 
         const timer = setInterval(updateCountdown, 1000);
