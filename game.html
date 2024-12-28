@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quizspel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        .hidden {
+            display: none;
+        }
+        .player-list, .question, .scoreboard {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .scoreboard table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 50%;
+        }
+        .scoreboard th, .scoreboard td {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .scoreboard th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Het Grote Quizspel</h1>
+
+    <!-- Speler toevoegen -->
+    <div id="player-setup">
+        <h2>Voeg spelers toe</h2>
+        <input type="text" id="player-name" placeholder="Naam speler">
+        <button id="add-player">Voeg speler toe</button>
+        <ul id="player-list" class="player-list"></ul>
+        <button id="start-game" class="hidden">Start het spel</button>
+    </div>
+
+    <!-- Quiz sectie -->
+    <div id="quiz" class="hidden">
+        <h2 id="current-player"></h2>
+        <div class="question">
+            <h3 id="question-text"></h3>
+            <button id="show-answer">Toon antwoord</button>
+            <div id="answer-section" class="hidden">
+                <p id="correct-answer"></p>
+                <button id="correct">Juist</button>
+                <button id="incorrect">Fout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scorebord -->
+    <div id="scoreboard" class="hidden">
+        <h2>Eindscore</h2>
+        <div class="scoreboard">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Speler</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreboard-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Variabelen
+        let players = [];
+        let scores = {};
+        let currentQuestionIndex = 0;
+        let currentPlayerIndex = 0;
+
+        // Vragenlijst
+        const questions = [
+            // Ronde 1: Geografie
+            { text: "Wat is de grootste oceaan ter wereld?", answer: "Stille Oceaan" },
+            { text: "Welke berg is de hoogste ter wereld?", answer: "Mount Everest" },
+            { text: "Welke rivier is de langste in Europa?", answer: "Wolga" },
+            { text: "Wat is de hoofdstad van Zuid-Afrika?", answer: "Pretoria, Kaapstad en Bloemfontein" },
+            { text: "In welk land ligt Machu Picchu?", answer: "Peru" },
+            { text: "Wat is de kleinste staat ter wereld?", answer: "Vaticaanstad" },
+            { text: "Welke stad wordt 'de stad van de liefde' genoemd?", answer: "Parijs" },
+            { text: "Hoeveel staten heeft de VS?", answer: "50" },
+            { text: "Wat is de hoofdstad van Canada?", answer: "Ottawa" },
+            { text: "In welk land ligt de stad Krakau?", answer: "Polen" },
+            { text: "Hoe heet de zee tussen Italië en Kroatië?", answer: "Adriatische Zee" },
+            { text: "Welke stad is de grootste in Spanje?", answer: "Madrid" },
+            { text: "Wat is de officiële taal van Brazilië?", answer: "Portugees" },
+            { text: "Hoe heet het grootste meer in Afrika?", answer: "Victoriameer" },
+            { text: "Wat is de hoofdstad van Rusland?", answer: "Moskou" },
+
+            // Ronde 2: Düsseldorf
+            { text: "Welke beroemde rivier stroomt door Düsseldorf?", answer: "Rijn" },
+            { text: "Hoe heet de grootste winkelstraat in Düsseldorf?", answer: "Königsallee" },
+            { text: "Wat is een traditioneel bier in Düsseldorf?", answer: "Altbier" },
+            { text: "Hoeveel districten heeft Düsseldorf?", answer: "10" },
+            { text: "Wat is de populairste voetbalclub in Düsseldorf?", answer: "Fortuna Düsseldorf" },
+            { text: "Hoe heet de internationale luchthaven van Düsseldorf?", answer: "Düsseldorf Airport" },
+            { text: "Welke wijk staat bekend om moderne architectuur?", answer: "Medienhafen" },
+            { text: "Hoe heet het grote jaarlijkse festival in Düsseldorf?", answer: "Karneval" },
+            { text: "Wat is de populairste kerstmarkt in Düsseldorf?", answer: "Altstadt Weihnachtsmarkt" },
+            { text: "Hoeveel bruggen over de Rijn liggen in Düsseldorf?", answer: "7" },
+
+            // Ronde 3: België
+            { text: "Hoeveel officiële talen heeft België?", answer: "3" },
+            { text: "Wat is de nationale feestdag van België?", answer: "21 juli" },
+            { text: "Welke Belgische stad staat bekend om zijn chocolade?", answer: "Brugge" },
+            { text: "Wat is de hoofdstad van Vlaanderen?", answer: "Brussel" },
+            { text: "Welke Belgische koning regeert momenteel?", answer: "Koning Filip" },
+            { text: "Hoeveel provincies heeft België?", answer: "10" },
+            { text: "Wat is de grootste havenstad in België?", answer: "Antwerpen" },
+            { text: "Hoe heet de oudste stad van België?", answer: "Tongeren" },
+            { text: "Welke Belgische stad is bekend om het Atomium?", answer: "Brussel" },
+            { text: "Wat is het nationale gerecht van België?", answer: "Frieten en stoofvlees" },
+            { text: "Wat is de grootste stad in Wallonië?", answer: "Charleroi" },
+            { text: "Welke Belgische wetenschapper bedacht de oerknaltheorie?", answer: "Georges Lemaître" },
+            { text: "Wat is het hoogste punt van België?", answer: "Signal de Botrange" },
+            { text: "Welke stad wordt beschouwd als de hoofdstad van de EU?", answer: "Brussel" },
+            { text: "Hoe heet het beroemde bierfestival in Leuven?", answer: "Zythos" },
+
+            // Ronde 4: Wiskunde
+            { text: "Wat is 15 × 6?", answer: "90" },
+            { text: "Wat is de wortel van 81?", answer: "9" },
+            { text: "Hoeveel zijden heeft een tienhoek?", answer: "10" },
+            { text: "Wat is 3 tot de macht 4?", answer: "81" },
+            { text: "Hoeveel graden heeft een cirkel?", answer: "360" },
+            { text: "Als een vierkant een zijde van 8 cm heeft, wat is dan de oppervlakte?", answer: "64 cm²" },
+            { text: "Hoeveel is 100 gedeeld door 4?", answer: "25" },
+            { text: "Wat is de formule voor de omtrek van een cirkel?", answer: "2πr" },
+            { text: "Hoeveel minuten zitten er in een dag?", answer: "1440" },
+            { text: "Wat is 1/4 van 200?", answer: "50" }
+        ];
+
+        // Selectors
+        const playerSetupDiv = document.getElementById("player-setup");
+        const playerNameInput = document.getElementById("player-name");
+        const addPlayerButton = document.getElementById("add-player");
+        const playerList = document.getElementById("player-list");
+        const startGameButton = document.getElementById("start-game");
+
+        const quizDiv = document.getElementById("quiz");
+        const currentPlayerDisplay = document.getElementById("current-player");
+        const questionText = document.getElementById("question-text");
+        const showAnswerButton = document.getElementById("show-answer");
+        const answerSection = document.getElementById("answer-section");
+        const correctAnswer = document.getElementById("correct-answer");
+        const correctButton = document.getElementById("correct");
+        const incorrectButton = document.getElementById("incorrect");
+
+        const scoreboardDiv = document.getElementById("scoreboard");
+        const scoreboardBody = document.getElementById("scoreboard-body");
+
+        // Speler toevoegen
+        addPlayerButton.addEventListener("click", () => {
+            const name = playerNameInput.value.trim();
+            if (name && !players.includes(name)) {
+                players.push(name);
+                scores[name] = 0;
+
+                const li = document.createElement("li");
+                li.textContent = name;
+                playerList.appendChild(li);
+
+                playerNameInput.value = "";
+
+                if (players.length >= 2) {
+                    startGameButton.classList.remove("hidden");
+                }
+            }
+        });
+
+        // Start het spel
+        startGameButton.addEventListener("click", () => {
+            playerSetupDiv.classList.add("hidden");
+            quizDiv.classList.remove("hidden");
+            loadQuestion();
+        });
+
+        // Laad de volgende vraag
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showScoreboard();
+                return;
+            }
+
+            const currentPlayer = players[currentPlayerIndex];
+            const question = questions[currentQuestionIndex];
+
+            currentPlayerDisplay.textContent = `Aan de beurt: ${currentPlayer}`;
+            questionText.textContent = question.text;
+            correctAnswer.textContent = `Antwoord: ${question.answer}`;
+
+            answerSection.classList.add("hidden");
+            showAnswerButton.classList.remove("hidden");
+        }
+
+        // Antwoord tonen
+        showAnswerButton.addEventListener("click", () => {
+            showAnswerButton.classList.add("hidden");
+            answerSection.classList.remove("hidden");
+        });
+
+        // Antwoord juist
+        correctButton.addEventListener("click", () => {
+            const currentPlayer = players[currentPlayerIndex];
+            scores[currentPlayer] += 10;
+            nextTurn();
+        });
+
+        // Antwoord fout
+        incorrectButton.addEventListener("click", () => {
+            nextTurn();
+        });
+
+        // Volgende beurt
+        function nextTurn() {
+            currentQuestionIndex++;
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            loadQuestion();
+        }
+
+        // Scorebord tonen
+        function showScoreboard() {
+            quizDiv.classList.add("hidden");
+            scoreboardDiv.classList.remove("hidden");
+
+            scoreboardBody.innerHTML = "";
+            players.forEach(player => {
+                const row = document.createElement("tr");
+                const nameCell = document.createElement("td");
+                const scoreCell = document.createElement("td");
+
+                nameCell.textContent = player;
+                scoreCell.textContent = scores[player];
+
+                row.appendChild(nameCell);
+                row.appendChild(scoreCell);
+                scoreboardBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
